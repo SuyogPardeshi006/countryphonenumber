@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Country Phone Number</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- intlTelInput CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/css/intlTelInput.css" />
+
+  <style>
+    input::placeholder { text-align: center; }
+  </style>
+</head>
+<body>
+  <form id="phoneForm">
+    <h1 class="text-center pt-2 text-dark">Country Phone Number</h1>
+    <div class="d-flex justify-content-center align-items-center">
+      <input type="tel" name="phone" id="phone" class="rounded-0" placeholder="Phone Number">
+    </div>
+
+    <div class="text-center pt-3">
+          <button type="submit" class="btn btn-primary rounded-4">Submit</button>
+    </div>
+  </form>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- intlTelInput JS -->
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/intlTelInput.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js"></script>
+
+  <!-- Init script AFTER library -->
+ <script>
+  const input = document.querySelector("input[name='phone']");
+  const iti = window.intlTelInput(input, {
+    initialCountry: "in",
+    preferredCountries: ["in", "us", "gb"],
+    utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js"
+  });
+
+  // Digits-only restriction while typing
+  input.addEventListener("input", function() {
+    this.value = this.value.replace(/\D/g, ""); // remove non-digits
+  });
+
+  // Handle form submit
+  document.getElementById("phoneForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    // Get number in E.164 format
+    const phone = iti.getNumber();
+
+    // Validate with intlTelInput
+    if (!iti.isValidNumber()) {
+      alert("❌ Please enter a valid phone number for the selected country.");
+      return;
+    }
+
+    // Extra digits-only check
+    if (!/^\+?\d+$/.test(phone)) {
+      alert("❌ Phone number must contain only digits.");
+      return;
+    }
+
+    // Send to backend
+    try {
+      const response = await fetch("http://localhost:8080/phoneNumber", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ phone: phone })
+      });
+
+      if (response.ok) {
+        alert("✅ Phone number saved successfully!");
+        input.value = "";
+      } else {
+        alert("❌ Error saving phone number");
+      }
+    } catch (error) {
+      alert("⚠️ Network error: " + error.message);
+    }
+  });
+</script>
+</body>
+</html>
